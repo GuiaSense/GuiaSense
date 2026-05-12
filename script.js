@@ -78,6 +78,8 @@ modes.forEach(b=>{
     txtAlcAtual.textContent = alcanceMaximo.toFixed(2) + 'm';
     updateVibrationInfo();
     showFeedback(`Modo ${v === 1.00 ? 'Perto' : 'Médio'} selecionado`);
+    // Salva automaticamente no Firebase quando o modo for alterado
+    try { saveConfigToFirebase(alcanceMaximo); } catch(e){ console.warn('saveConfig erro', e); }
   })
 });
 
@@ -88,6 +90,12 @@ seekAlc.addEventListener('input', ()=>{
   txtAlcAtual.textContent = alcanceMaximo.toFixed(2) + 'm';
   modes.forEach(x=>x.classList.remove('active'));
   updateVibrationInfo();
+});
+
+// Ao terminar de ajustar (evento change), salva no Firebase
+seekAlc.addEventListener('change', ()=>{
+  try { saveConfigToFirebase(alcanceMaximo); showFeedback('✅ Configuração salva no Firebase'); }
+  catch(e){ console.warn('saveConfig erro', e); }
 });
 
 // Salvar: simula salvar local e enviar notificacao
@@ -125,7 +133,8 @@ function saveConfigToFirebase(alcance) {
     console.warn('Firebase não está disponível no contexto web.');
     return;
   }
-  const ref = firebase.database().ref('configuracoes/usuario_web');
+  // Usar o mesmo nó que o app Android para consistência
+  const ref = firebase.database().ref('configuracoes/usuario_id');
   const payload = {
     alcance_maximo: alcance,
     timestamp: Date.now()
