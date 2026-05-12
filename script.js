@@ -93,6 +93,12 @@ seekAlc.addEventListener('input', ()=>{
 // Salvar: simula salvar local e enviar notificacao
 btnSalvar.addEventListener('click', ()=>{
   localStorage.setItem('alcance_maximo', alcanceMaximo);
+  // Salva também no Firebase (se inicializado)
+  try {
+    saveConfigToFirebase(alcanceMaximo);
+  } catch (e) {
+    console.warn('Erro ao tentar salvar no Firebase', e);
+  }
   showFeedback(`✅ Configuração salva! Alcance: ${alcanceMaximo.toFixed(2)}m`);
 });
 
@@ -112,3 +118,19 @@ simRange.addEventListener('input', ()=>{
 // Inicialização
 updateVibrationInfo();
 simulateSensorReading(parseInt(simRange.value,10)/100);
+
+// --- Firebase helper (grava no Realtime Database) ---
+function saveConfigToFirebase(alcance) {
+  if (typeof firebase === 'undefined' || !firebase.database) {
+    console.warn('Firebase não está disponível no contexto web.');
+    return;
+  }
+  const ref = firebase.database().ref('configuracoes/usuario_web');
+  const payload = {
+    alcance_maximo: alcance,
+    timestamp: Date.now()
+  };
+  ref.set(payload)
+    .then(()=> console.log('Configuração gravada no Firebase'))
+    .catch(err => console.error('Erro ao gravar no Firebase', err));
+}

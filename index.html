@@ -60,6 +60,22 @@
     </section>
   </main>
 
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+  <script>
+    // Inicialização do Firebase (web) — valores partir do google-services.json como exemplo
+    var firebaseConfig = {
+      apiKey: "AIzaSyASWi0p3RR5dWAGByXo761G01Wfs1LF0ww",
+      authDomain: "guiasense.firebaseapp.com",
+      databaseURL: "https://guiasense-default-rtdb.firebaseio.com",
+      projectId: "guiasense",
+      storageBucket: "guiasense.firebasestorage.app",
+      messagingSenderId: "658225888828",
+      appId: "1:658225888828:android:1aaecef723f0452db24d39"
+    };
+    firebase.initializeApp(firebaseConfig);
+  </script>
   <script src="script.js"></script>
 </body>
 </html>
+
