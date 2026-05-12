@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Óculos Sensorial — Web</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="container">
+    <h1>Óculos Sensorial</h1>
+    <p class="subtitle">Assistência para navegação</p>
+
+    <section class="card">
+      <h2>Conexão do Dispositivo</h2>
+      <button id="btn_conectar" class="primary">Conectar ao Óculos</button>
+      <p id="txt_status_conexao" class="muted">Desconectado</p>
+    </section>
+
+    <section class="card">
+      <h2>Status do Sensor</h2>
+      <div class="row">
+        <span>Distância:</span>
+        <strong id="txt_distancia">--- m</strong>
+      </div>
+      <div class="row">
+        <span>Intensidade:</span>
+        <strong id="txt_intensidade">---</strong>
+      </div>
+      <div class="bar" id="view_barra_intensidade">
+        <div class="bar-fill" id="view_intensidade"></div>
+      </div>
+      <label class="sim-label">Simular distância</label>
+      <input id="sim_distance" type="range" min="0" max="300" value="100">
+    </section>
+
+    <section class="card">
+      <h2>Configuração do Alcance</h2>
+      <p class="muted">Modos Rápidos</p>
+      <div class="modes">
+        <button class="mode" data-value="1.00">Perto (1,00m)</button>
+        <button class="mode" data-value="1.50">Médio (1,50m)</button>
+      </div>
+
+      <label class="sim-label">Ajuste Personalizado</label>
+      <input id="seekbar_alcance" type="range" min="50" max="200" value="100">
+      <div class="range-info">
+        <span>Min: 0,50m</span>
+        <strong id="txt_alcance_atual">1,00m</strong>
+        <span>Max: 2,00m</span>
+      </div>
+
+      <button id="btn_salvar" class="success">Salvar Configuração</button>
+      <p id="txt_feedback" class="feedback"></p>
+    </section>
+
+    <section class="card">
+      <h2>Como Funciona a Vibração</h2>
+      <pre id="txt_info_vibracao" class="info"></pre>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>

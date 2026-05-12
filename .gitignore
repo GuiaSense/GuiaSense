@@ -1,0 +1,7 @@
+google-services.json
+*.key
+*.pem
+*.env
+/.vscode/
+/.idea/
+*.log

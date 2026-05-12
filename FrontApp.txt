@@ -1,0 +1,354 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F5F5F5">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- TÍTULO PRINCIPAL -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Oculos Sensorial"
+            android:textSize="28sp"
+            android:textStyle="bold"
+            android:textColor="#1E88E5"
+            android:gravity="center"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Assistencia para navegacao"
+            android:textSize="14sp"
+            android:textColor="#666666"
+            android:gravity="center"
+            android:layout_marginBottom="24dp" />
+
+        <!-- CARD: CONEXAO DO OCULOS -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardElevation="4dp"
+            app:cardCornerRadius="12dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Conexao do Dispositivo"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="12dp" />
+
+                <Button
+                    android:id="@+id/btn_conectar"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:text="Conectar ao Oculos"
+                    android:backgroundTint="#1E88E5"
+                    android:textColor="#FFFFFF"
+                    android:layout_marginBottom="8dp" />
+
+                <TextView
+                    android:id="@+id/txt_status_conexao"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Desconectado"
+                    android:textColor="#999999"
+                    android:textSize="14sp" />
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- CARD: STATUS EM TEMPO REAL -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardElevation="4dp"
+            app:cardCornerRadius="12dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Status do Sensor"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="12dp" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="12dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Distancia:"
+                        android:textSize="16sp" />
+
+                    <TextView
+                        android:id="@+id/txt_distancia"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="--- m"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="#1E88E5" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="12dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Intensidade:"
+                        android:textSize="16sp" />
+
+                    <TextView
+                        android:id="@+id/txt_intensidade"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="---"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="#FF9800" />
+                </LinearLayout>
+
+                <!-- Barra visual de intensidade -->
+                <View
+                    android:id="@+id/view_barra_intensidade"
+                    android:layout_width="match_parent"
+                    android:layout_height="8dp"
+                    android:background="#E0E0E0"
+                    android:layout_marginTop="4dp" />
+
+                <View
+                    android:id="@+id/view_intensidade"
+                    android:layout_width="0dp"
+                    android:layout_height="8dp"
+                    android:background="#FF9800"
+                    android:layout_marginTop="-8dp" />
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- CARD: CONFIGURACAO DO ALCANCE -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardElevation="4dp"
+            app:cardCornerRadius="12dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Configuracao do Alcance"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="16dp" />
+
+                <!-- Botoes de modo rapido -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Modos Rapidos"
+                    android:textSize="14sp"
+                    android:textColor="#666666"
+                    android:layout_marginBottom="8dp" />
+
+                <RadioGroup
+                    android:id="@+id/rg_modos"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="16dp">
+
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginEnd="8dp"
+                        app:cardElevation="2dp"
+                        app:cardCornerRadius="8dp">
+
+                        <RadioButton
+                            android:id="@+id/rb_perto"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Perto (1,00m)"
+                            android:gravity="center"
+                            android:padding="12dp"
+                            android:button="@null"
+                            android:drawableTop="@android:drawable/btn_radio"
+                            android:textAlignment="center" />
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="8dp"
+                        app:cardElevation="2dp"
+                        app:cardCornerRadius="8dp">
+
+                        <RadioButton
+                            android:id="@+id/rb_medio"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Medio (1,50m)"
+                            android:gravity="center"
+                            android:padding="12dp"
+                            android:button="@null"
+                            android:drawableTop="@android:drawable/btn_radio"
+                            android:textAlignment="center" />
+                    </com.google.android.material.card.MaterialCardView>
+
+                </RadioGroup>
+
+                <!-- Ajuste fino com Slider -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Ajuste Personalizado"
+                    android:textSize="14sp"
+                    android:textColor="#666666"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginBottom="8dp" />
+
+                <SeekBar
+                    android:id="@+id/seekbar_alcance"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:max="200"
+                    android:progress="100" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="16dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Min: 0,50m"
+                        android:textSize="12sp"
+                        android:textColor="#999999" />
+
+                    <TextView
+                        android:id="@+id/txt_alcance_atual"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="1,00m"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:textColor="#1E88E5"
+                        android:gravity="center" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Max: 2,00m"
+                        android:textSize="12sp"
+                        android:textColor="#999999"
+                        android:gravity="end" />
+                </LinearLayout>
+
+                <Button
+                    android:id="@+id/btn_salvar"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:text="Salvar Configuracao"
+                    android:backgroundTint="#4CAF50"
+                    android:textColor="#FFFFFF" />
+
+                <TextView
+                    android:id="@+id/txt_feedback"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text=""
+                    android:textSize="12sp"
+                    android:textColor="#4CAF50"
+                    android:gravity="center"
+                    android:layout_marginTop="8dp" />
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- CARD: INFORMACOES DA VIBRACAO -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardElevation="4dp"
+            app:cardCornerRadius="12dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Como Funciona a Vibracao"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="12dp" />
+
+                <TextView
+                    android:id="@+id/txt_info_vibracao"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Distancia < 0,60m -> Vibracao Forte\n0,60m - 0,80m -> Vibracao Media\n0,80m - 1,00m -> Vibracao Leve"
+                    android:textSize="13sp"
+                    android:textColor="#666666"
+                    android:lineSpacingExtra="4dp" />
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
+    </LinearLayout>
+
+</ScrollView>
