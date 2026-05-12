@@ -14,6 +14,10 @@ const txtAlcAtual = document.getElementById('txt_alcance_atual');
 const txtInfo = document.getElementById('txt_info_vibracao');
 const btnSalvar = document.getElementById('btn_salvar');
 const txtFeedback = document.getElementById('txt_feedback');
+const wifiSsid = document.getElementById('wifi_ssid');
+const wifiPass = document.getElementById('wifi_pass');
+const btnSendWifi = document.getElementById('btn_send_wifi');
+const txtWifiFeedback = document.getElementById('txt_wifi_feedback');
 
 function formatMeters(v){ return (v/100).toFixed(2) + 'm' }
 
@@ -142,4 +146,43 @@ function saveConfigToFirebase(alcance) {
   ref.set(payload)
     .then(()=> console.log('Configuração gravada no Firebase'))
     .catch(err => console.error('Erro ao gravar no Firebase', err));
+}
+
+// --- Wi‑Fi provisioning via Firebase ---
+btnSendWifi.addEventListener('click', ()=>{
+  const ssid = (wifiSsid && wifiSsid.value || '').trim();
+  const pass = (wifiPass && wifiPass.value || '').trim();
+  if (!ssid) { txtWifiFeedback.textContent = 'Informe o SSID.'; return; }
+  if (!pass) { txtWifiFeedback.textContent = 'Informe a senha.'; return; }
+  txtWifiFeedback.textContent = 'Enviando...';
+  try {
+    saveWifiToFirebase(ssid, pass);
+  } catch(e){
+    console.error(e);
+    txtWifiFeedback.textContent = 'Erro ao enviar.';
+  }
+});
+
+function saveWifiToFirebase(ssid, password) {
+  if (typeof firebase === 'undefined' || !firebase.database) {
+    console.warn('Firebase não disponível.');
+    txtWifiFeedback.textContent = 'Firebase não disponível.';
+    return;
+  }
+  // Atenção: este exemplo envia a senha em texto claro ao Realtime DB.
+  // Em produção, use autenticação e/ou criptografia no cliente ou no dispositivo receptor.
+  const ref = firebase.database().ref('wifi_credentials/usuario_id');
+  const payload = {
+    ssid: ssid,
+    password: password,
+    timestamp: Date.now()
+  };
+  ref.set(payload)
+    .then(()=> {
+      console.log('Credenciais Wi‑Fi gravadas no Firebase');
+      txtWifiFeedback.textContent = 'Credenciais enviadas com sucesso.';
+      // limpa campos
+      if (wifiPass) wifiPass.value = '';
+    })
+    .catch(err => { console.error(err); txtWifiFeedback.textContent = 'Erro ao gravar credenciais.'; });
 }
