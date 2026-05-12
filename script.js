@@ -145,6 +145,7 @@ function listenSensorStatus() {
   const ref = firebase.database().ref('sensor_status/usuario_id');
   ref.on('value', snapshot => {
     const data = snapshot.val();
+    console.log('sensor_status snapshot:', data);
     const simLabel = document.querySelector('.sim-label');
     if (!data) {
       // sem dados: voltar para modo simulado
@@ -165,9 +166,9 @@ function listenSensorStatus() {
     if (data.distance !== undefined && data.distance !== null) {
       // aceitar distância em metros ou centímetros
       let distanceMeters = Number(data.distance);
-      if (distanceMeters > 1000) {
-        // provável que esteja em centímetros, converte
-        distanceMeters = distanceMeters / 100.0;
+      // Heurística: se o valor é grande (ex: >20), provavelmente está em centímetros
+      if (distanceMeters > 20) {
+        distanceMeters = distanceMeters / 100.0; // cm -> m
       }
       // atualiza elementos de UI usando a função existente
       try { simulateSensorReading(Number(distanceMeters)); }
