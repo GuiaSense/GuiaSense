@@ -122,6 +122,8 @@ function showFeedback(msg){
 
 // Simulação por controle deslizante
 simRange.addEventListener('input', ()=>{
+  // Se estivermos recebendo dados em tempo real, ignore a simulação
+  if (window._isLiveData) return;
   const cm = parseInt(simRange.value,10);
   const m = cm / 100; // range em centímetros -> metros
   simulateSensorReading(m);
@@ -130,6 +132,9 @@ simRange.addEventListener('input', ()=>{
 // Inicialização
 updateVibrationInfo();
 simulateSensorReading(parseInt(simRange.value,10)/100);
+
+// Indica se os dados do sensor estão vindo do Realtime DB
+window._isLiveData = false;
 
 // Se o Firebase estiver disponível, habilita listener do status do sensor
 function listenSensorStatus() {
@@ -140,13 +145,21 @@ function listenSensorStatus() {
   const ref = firebase.database().ref('sensor_status/usuario_id');
   ref.on('value', snapshot => {
     const data = snapshot.val();
+    const simLabel = document.querySelector('.sim-label');
     if (!data) {
-      // sem dados: marcar desconectado
+      // sem dados: voltar para modo simulado
+      window._isLiveData = false;
+      if (simRange) simRange.disabled = false;
+      if (simLabel) simLabel.textContent = 'Simular distância';
       txtStatus.textContent = 'Desconectado';
       return;
     }
+    // Há dados ao vivo: desabilita simulação
+    window._isLiveData = true;
+    if (simRange) simRange.disabled = true;
+    if (simLabel) simLabel.textContent = 'Ao Vivo';
     // Atualiza status de conexão
-    txtStatus.textContent = data.connected ? 'Conectado' : 'Desconectado';
+    txtStatus.textContent = (data.connected ? 'Conectado' : 'Desconectado') + (window._isLiveData ? ' (Ao Vivo)' : '');
 
     // Se houver distância no payload, atualiza UI
     if (data.distance !== undefined && data.distance !== null) {
