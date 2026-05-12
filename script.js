@@ -131,6 +131,48 @@ simRange.addEventListener('input', ()=>{
 updateVibrationInfo();
 simulateSensorReading(parseInt(simRange.value,10)/100);
 
+// Se o Firebase estiver disponível, habilita listener do status do sensor
+function listenSensorStatus() {
+  if (typeof firebase === 'undefined' || !firebase.database) {
+    console.warn('Firebase não disponível: listener de sensor não iniciado.');
+    return;
+  }
+  const ref = firebase.database().ref('sensor_status/usuario_id');
+  ref.on('value', snapshot => {
+    const data = snapshot.val();
+    if (!data) {
+      // sem dados: marcar desconectado
+      txtStatus.textContent = 'Desconectado';
+      return;
+    }
+    // Atualiza status de conexão
+    txtStatus.textContent = data.connected ? 'Conectado' : 'Desconectado';
+
+    // Se houver distância no payload, atualiza UI
+    if (data.distance !== undefined && data.distance !== null) {
+      // aceitar distância em metros ou centímetros
+      let distanceMeters = Number(data.distance);
+      if (distanceMeters > 1000) {
+        // provável que esteja em centímetros, converte
+        distanceMeters = distanceMeters / 100.0;
+      }
+      // atualiza elementos de UI usando a função existente
+      try { simulateSensorReading(Number(distanceMeters)); }
+      catch(e){ console.error('Erro ao aplicar leitura do sensor', e); }
+    }
+
+    // Se houver intensidade textual, atualiza diretamente
+    if (data.intensity) {
+      txtInt.textContent = data.intensity;
+    }
+  }, err => {
+    console.error('Erro no listener sensor_status:', err);
+  });
+}
+
+// Inicia listener automaticamente se possível
+try { listenSensorStatus(); } catch(e){ console.warn('listenSensorStatus error', e); }
+
 // --- Firebase helper (grava no Realtime Database) ---
 function saveConfigToFirebase(alcance) {
   if (typeof firebase === 'undefined' || !firebase.database) {
