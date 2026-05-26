@@ -14,14 +14,14 @@
 // Substitua por suas credenciais localmente antes de compilar ou
 // use um mecanismo seguro (Preferences / NVS) para fornecer em tempo de execução.
 #define DATABASE_URL "guiasense-default-rtdb.firebaseio.com"
-#define DATABASE_SECRET "<SEU_DATABASE_SECRET_AQUI>"
+#define DATABASE_SECRET "https://guiasense-default-rtdb.firebaseio.com"
 
 // Configurações WiFi
 // Atenção: remova hardcodes de SSID/senha em repositórios públicos.
 // Recomendamos configurar via portal do dispositivo (Preferences) ou
 // preenchendo estas constantes localmente antes do upload.
-#define WIFI_SSID "<SEU_SSID_AQUI>"
-#define WIFI_PASSWORD "<SUA_SENHA_WIFI_AQUI>"
+#define WIFI_SSID "iPhone de Ediney"
+#define WIFI_PASSWORD "10203040"
 
 // Pinos I2C e Hardware para ESP32-C3 Super Mini
 #define I2C_SDA 8
