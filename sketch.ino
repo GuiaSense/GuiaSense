@@ -14,7 +14,7 @@
 // Substitua por suas credenciais localmente antes de compilar ou
 // use um mecanismo seguro (Preferences / NVS) para fornecer em tempo de execução.
 #define DATABASE_URL "guiasense-default-rtdb.firebaseio.com"
-#define DATABASE_SECRET "https://guiasense-default-rtdb.firebaseio.com"
+#define API_KEY "AIzaSyBDA9Sao0jGoXUKqLYDLxNOUwrviUi5Z14"
 
 // Configurações WiFi
 // Atenção: remova hardcodes de SSID/senha em repositórios públicos.
@@ -26,7 +26,6 @@
 // Pinos I2C e Hardware para ESP32-C3 Super Mini
 #define I2C_SDA 8
 #define I2C_SCL 9
-#define MOTOR_PIN 10 
 
 // Objetos
 FirebaseData fbdo;
@@ -48,7 +47,6 @@ const int INTERVALO_SINC = 1000;
 
 void setup() {
   Serial.begin(115200);
-  pinMode(MOTOR_PIN, OUTPUT);
 
   // 1. Inicializa I2C
   Wire.begin(I2C_SDA, I2C_SCL);
@@ -125,17 +123,29 @@ void setup() {
   }
 
   // 4. Configuração Firebase
+  config.api_key = API_KEY;
   config.database_url = DATABASE_URL;
-  config.signer.tokens.legacy_token = DATABASE_SECRET;
+
+  Serial.print("Autenticando no Firebase anonimamente... ");
+  
+  // Firebase.signUp com strings vazias força o login anônimo
+  if (Firebase.signUp(&config, &auth, "", "")) {
+    Serial.println("Sucesso!");
+  } else {
+    Serial.printf("Erro na autenticação: %s\n", config.signer.signupError.message.c_str());
+  }
+
+  // Otimização do buffer SSL para o ESP32
   fbdo.setBSSLBufferSize(4096, 1024);
   
+  // Inicia a comunicação
   Firebase.begin(&config, &auth);
   Firebase.reconnectWiFi(true);
 
+  // Testa a conexão escrevendo no banco
   if(Firebase.RTDB.setBool(&fbdo, "estado_dispositivo/conectado", true)) {
-    Serial.println("Registrado no Firebase!");
+    Serial.println("Conexão com Realtime Database estabelecida!");
   }
-}
 
 void loop() {
   // Se estivermos no modo de configuração, atendemos o servidor web
@@ -144,6 +154,7 @@ void loop() {
     delay(1);
     return; // não executa leituras enquanto configurando
   }
+  
   // --- 1. LEITURA DO SENSOR LASER ---
   // A Pololu lê direto em milímetros
   uint16_t dist_mm = sensor.readRangeSingleMillimeters();
@@ -155,25 +166,19 @@ void loop() {
     distancia_m = dist_mm / 1000.0;
   }
 
-  // --- 2. LÓGICA DE VIBRAÇÃO ---
-  int intensidadeVibracao = 0;
+  // --- 2. LÓGICA DE ALERTA (PARA O GALAXY WATCH) ---
   String nivelVibracao = "Nenhuma";
 
   float zonaForte = alcanceMaximo_m * 0.5;
   float zonaMedia = alcanceMaximo_m * 0.75;
 
   if (distancia_m < zonaForte) {
-    intensidadeVibracao = 255;
     nivelVibracao = "Forte";
   } else if (distancia_m < zonaMedia) {
-    intensidadeVibracao = 150;
     nivelVibracao = "Media";
   } else if (distancia_m < alcanceMaximo_m) {
-    intensidadeVibracao = 80;
     nivelVibracao = "Leve";
   }
-
-  analogWrite(MOTOR_PIN, intensidadeVibracao);
 
   // --- 3. SINCRONIZAÇÃO COM FIREBASE ---
   if (millis() - tempoUltimaSincronizacao > INTERVALO_SINC) {
@@ -190,6 +195,7 @@ void loop() {
     Firebase.RTDB.setDouble(&fbdo, "estado_dispositivo/ultima_distancia", distancia_m);
     Firebase.RTDB.setString(&fbdo, "estado_dispositivo/vibracao_atual", nivelVibracao);
     
-    Serial.printf("Dist: %.2fm | Alcance Max: %.2fm | Motor: %s\n", distancia_m, alcanceMaximo_m, nivelVibracao.c_str());
+    // Atualizamos o Serial.printf para refletir a mudança
+    Serial.printf("Dist: %.2fm | Alcance Max: %.2fm | Status Alerta: %s\n", distancia_m, alcanceMaximo_m, nivelVibracao.c_str());
   }
 }
