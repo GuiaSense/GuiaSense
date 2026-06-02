@@ -82,7 +82,6 @@ modes.forEach(b=>{
     txtAlcAtual.textContent = alcanceMaximo.toFixed(2) + 'm';
     updateVibrationInfo();
     showFeedback(`Modo ${v === 1.00 ? 'Perto' : 'Médio'} selecionado`);
-    // Salva automaticamente no Firebase quando o modo for alterado
     try { saveConfigToFirebase(alcanceMaximo); } catch(e){ console.warn('saveConfig erro', e); }
   })
 });
@@ -105,7 +104,6 @@ seekAlc.addEventListener('change', ()=>{
 // Salvar: simula salvar local e enviar notificacao
 btnSalvar.addEventListener('click', ()=>{
   localStorage.setItem('alcance_maximo', alcanceMaximo);
-  // Salva também no Firebase (se inicializado)
   try {
     saveConfigToFirebase(alcanceMaximo);
   } catch (e) {
@@ -122,70 +120,82 @@ function showFeedback(msg){
 
 // Simulação por controle deslizante
 simRange.addEventListener('input', ()=>{
-  // Se estivermos recebendo dados em tempo real, ignore a simulação
   if (window._isLiveData) return;
   const cm = parseInt(simRange.value,10);
   const m = cm / 100; // range em centímetros -> metros
   simulateSensorReading(m);
 });
 
-// Inicialização
+// Inicialização da interface
 updateVibrationInfo();
 simulateSensorReading(parseInt(simRange.value,10)/100);
-
-// Indica se os dados do sensor estão vindo do Realtime DB
 window._isLiveData = false;
 
-// Se o Firebase estiver disponível, habilita listener do status do sensor
+// --- Configuração e Autenticação Firebase ---
+
+if (typeof firebase !== 'undefined' && firebase.auth) {
+  // Autenticação Anônima no Web App
+  firebase.auth().signInAnonymously()
+    .then(() => {
+      console.log("Página logada anonimamente no Firebase com sucesso!");
+      // Inicia a escuta dos dados apenas após o login
+      listenSensorStatus();
+    })
+    .catch((error) => {
+      console.error("Erro ao autenticar a página web:", error.code, error.message);
+      txtStatus.textContent = 'Erro de Autenticação';
+    });
+} else {
+  console.warn('Firebase ou Firebase Auth não disponível. Modo simulado ativo.');
+}
+
+// Habilita listener do status do sensor
 function listenSensorStatus() {
   if (typeof firebase === 'undefined' || !firebase.database) {
-    console.warn('Firebase não disponível: listener de sensor não iniciado.');
+    console.warn('Firebase Database não disponível.');
     return;
   }
-  const ref = firebase.database().ref('sensor_status/usuario_id');
+  
+  const ref = firebase.database().ref('estado_dispositivo');
+  
   ref.on('value', snapshot => {
     const data = snapshot.val();
-    console.log('sensor_status snapshot:', data);
     const simLabel = document.querySelector('.sim-label');
+    
     if (!data) {
-      // sem dados: voltar para modo simulado
       window._isLiveData = false;
       if (simRange) simRange.disabled = false;
       if (simLabel) simLabel.textContent = 'Simular distância';
       txtStatus.textContent = 'Desconectado';
       return;
     }
-    // Há dados ao vivo: desabilita simulação
+    
+    // Há dados ao vivo
     window._isLiveData = true;
     if (simRange) simRange.disabled = true;
     if (simLabel) simLabel.textContent = 'Ao Vivo';
+    
     // Atualiza status de conexão
-    txtStatus.textContent = (data.connected ? 'Conectado' : 'Desconectado') + (window._isLiveData ? ' (Ao Vivo)' : '');
+    txtStatus.textContent = (data.conectado ? 'Conectado' : 'Desconectado') + (window._isLiveData ? ' (Ao Vivo)' : '');
 
-    // Se houver distância no payload, atualiza UI
-    if (data.distance !== undefined && data.distance !== null) {
-      // aceitar distância em metros ou centímetros
-      let distanceMeters = Number(data.distance);
-      // Heurística: se o valor é grande (ex: >20), provavelmente está em centímetros
+    // Atualiza distância
+    if (data.ultima_distancia !== undefined && data.ultima_distancia !== null) {
+      let distanceMeters = Number(data.ultima_distancia);
       if (distanceMeters > 20) {
-        distanceMeters = distanceMeters / 100.0; // cm -> m
+        distanceMeters = distanceMeters / 100.0; // cm -> m se o valor for muito alto
       }
-      // atualiza elementos de UI usando a função existente
       try { simulateSensorReading(Number(distanceMeters)); }
       catch(e){ console.error('Erro ao aplicar leitura do sensor', e); }
     }
 
-    // Se houver intensidade textual, atualiza diretamente
-    if (data.intensity) {
-      txtInt.textContent = data.intensity;
+    // Atualiza vibração
+    if (data.vibracao_atual) {
+      txtInt.textContent = data.vibracao_atual;
     }
   }, err => {
-    console.error('Erro no listener sensor_status:', err);
+    console.error('Erro no listener estado_dispositivo:', err);
   });
 }
-
-// Inicia listener automaticamente se possível
-try { listenSensorStatus(); } catch(e){ console.warn('listenSensorStatus error', e); }
 
 // --- Firebase helper (grava no Realtime Database) ---
 function saveConfigToFirebase(alcance) {
@@ -193,12 +203,13 @@ function saveConfigToFirebase(alcance) {
     console.warn('Firebase não está disponível no contexto web.');
     return;
   }
-  // Usar o mesmo nó que o app Android para consistência
-  const ref = firebase.database().ref('configuracoes/usuario_id');
+  
+  const ref = firebase.database().ref('configuracoes');
+  
   const payload = {
-    alcance_maximo: alcance,
-    timestamp: Date.now()
+    alcance_maximo: alcance
   };
+  
   ref.set(payload)
     .then(()=> console.log('Configuração gravada no Firebase'))
     .catch(err => console.error('Erro ao gravar no Firebase', err));
@@ -225,19 +236,18 @@ function saveWifiToFirebase(ssid, password) {
     txtWifiFeedback.textContent = 'Firebase não disponível.';
     return;
   }
-  // Atenção: este exemplo envia a senha em texto claro ao Realtime DB.
-  // Em produção, use autenticação e/ou criptografia no cliente ou no dispositivo receptor.
-  const ref = firebase.database().ref('wifi_credentials/usuario_id');
+  
+  const ref = firebase.database().ref('credenciais_wifi');
   const payload = {
     ssid: ssid,
     password: password,
     timestamp: Date.now()
   };
+  
   ref.set(payload)
     .then(()=> {
       console.log('Credenciais Wi‑Fi gravadas no Firebase');
       txtWifiFeedback.textContent = 'Credenciais enviadas com sucesso.';
-      // limpa campos
       if (wifiPass) wifiPass.value = '';
     })
     .catch(err => { console.error(err); txtWifiFeedback.textContent = 'Erro ao gravar credenciais.'; });
