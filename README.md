@@ -1,5 +1,7 @@
 # Óculos Sensorial — Web
 
+Página web ativa: https://edineysantos.github.io/GuiaSense_N.Ediney/
+
 Esta página replica a interface do app Android presente em `MainActivity.kt` e `FrontApp.txt`.
 
 Como usar
