@@ -1,7 +1,8 @@
 google-services.json
-*.key
-*.pem
-*.env
-/.vscode/
-/.idea/
-*.log
+*.keystore
+*.jks
+app/google-services.json
+build/
+.gradle/
+local.properties
+.idea/
