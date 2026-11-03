@@ -146,6 +146,7 @@ void setup() {
   if(Firebase.RTDB.setBool(&fbdo, "estado_dispositivo/conectado", true)) {
     Serial.println("Conexão com Realtime Database estabelecida!");
   }
+}
 
 void loop() {
   // Se estivermos no modo de configuração, atendemos o servidor web
