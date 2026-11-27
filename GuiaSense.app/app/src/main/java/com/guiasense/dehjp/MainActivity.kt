@@ -1,23 +1,43 @@
 package com.guiasense.dehjp
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
-import android.widget.SeekBar
-import android.view.View
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
-import com.google.firebase.database.FirebaseDatabase
-import android.widget.RadioGroup
-import android.widget.RadioButton
+import android.view.View
 import android.widget.Button
+import android.widget.RadioButton
+import android.widget.SeekBar
 import android.widget.TextView
+import androidx.annotation.VisibleForTesting
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ServerValue
+import com.google.firebase.database.ValueEventListener
+import com.guiasense.dehjp.AlertaVibracao.Nivel
+import kotlin.math.abs
+import kotlin.math.roundToInt
 
 class MainActivity : AppCompatActivity() {
 
-    private var alcanceMaximo = 1.00 // em metros
+    private companion object { const val TAG = "MainActivity" }
 
-    private lateinit var rgModos: RadioGroup
+    private var alcanceMaximo = AlertaVibracao.ALCANCE_PADRAO_M
+
+    private lateinit var btnConectar: Button
+    private lateinit var txtStatusConexao: TextView
+    private lateinit var rbPerto: RadioButton
+    private lateinit var rbMedio: RadioButton
     private lateinit var seekbarAlcance: SeekBar
     private lateinit var txtAlcanceAtual: TextView
     private lateinit var txtInfoVibracao: TextView
@@ -28,167 +48,249 @@ class MainActivity : AppCompatActivity() {
     private lateinit var viewIntensidade: View
     private lateinit var viewBarraIntensidade: View
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(com.guiasense.dehjp.R.layout.activity_main)
-
-        rgModos = findViewById(com.guiasense.dehjp.R.id.rg_modos)
-        seekbarAlcance = findViewById(com.guiasense.dehjp.R.id.seekbar_alcance)
-        txtAlcanceAtual = findViewById(com.guiasense.dehjp.R.id.txt_alcance_atual)
-        txtInfoVibracao = findViewById(com.guiasense.dehjp.R.id.txt_info_vibracao)
-        btnSalvar = findViewById(com.guiasense.dehjp.R.id.btn_salvar)
-        txtFeedback = findViewById(com.guiasense.dehjp.R.id.txt_feedback)
-        txtDistancia = findViewById(com.guiasense.dehjp.R.id.txt_distancia)
-        txtIntensidade = findViewById(com.guiasense.dehjp.R.id.txt_intensidade)
-        viewIntensidade = findViewById(com.guiasense.dehjp.R.id.view_intensidade)
-        viewBarraIntensidade = findViewById(com.guiasense.dehjp.R.id.view_barra_intensidade)
-
-        setupRadioButtons()
-        setupSeekBar()
-        setupSaveButton()
-        updateVibrationInfo()
+    private val handler = Handler(Looper.getMainLooper())
+    private val esconderFeedback = Runnable { txtFeedback.visibility = View.GONE }
+    private val reavaliarConexao = object : Runnable {
+        override fun run() { mostrarEstado(); handler.postDelayed(this, 1_000) }
     }
 
-    private fun setupRadioButtons() {
-        rgModos.setOnCheckedChangeListener { _, checkedId ->
-            when (checkedId) {
-                com.guiasense.dehjp.R.id.rb_perto -> {
-                    alcanceMaximo = 1.00
-                    seekbarAlcance.progress = 100
-                    txtAlcanceAtual.text = "1,00m"
-                }
-                com.guiasense.dehjp.R.id.rb_medio -> {
-                    alcanceMaximo = 1.50
-                    seekbarAlcance.progress = 150
-                    txtAlcanceAtual.text = "1,50m"
-                }
-            }
-            updateVibrationInfo()
-            showFeedback("Modo ${if(checkedId == com.guiasense.dehjp.R.id.rb_perto) "Perto" else "Médio"} selecionado")
+
+    private val db by lazy { FirebaseDatabase.getInstance() }
+    private var refEstado: DatabaseReference? = null
+    private var refConfig: DatabaseReference? = null
+    private var refOffset: DatabaseReference? = null
+    private var ultimoEstado: EstadoOculos? = null
+    private var offsetServidorMs = 0L
+
+    private val pedirPermissaoNotificacao =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { concedida ->
+            if (concedida) iniciarMonitoramento()
+            else showFeedback("Sem permissão de notificação o relógio não vibra.", erro = true)
         }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+
+        btnConectar = findViewById(R.id.btn_conectar)
+        txtStatusConexao = findViewById(R.id.txt_status_conexao)
+        rbPerto = findViewById(R.id.rb_perto)
+        rbMedio = findViewById(R.id.rb_medio)
+        seekbarAlcance = findViewById(R.id.seekbar_alcance)
+        txtAlcanceAtual = findViewById(R.id.txt_alcance_atual)
+        txtInfoVibracao = findViewById(R.id.txt_info_vibracao)
+        btnSalvar = findViewById(R.id.btn_salvar)
+        txtFeedback = findViewById(R.id.txt_feedback)
+        txtDistancia = findViewById(R.id.txt_distancia)
+        txtIntensidade = findViewById(R.id.txt_intensidade)
+        viewIntensidade = findViewById(R.id.view_intensidade)
+        viewBarraIntensidade = findViewById(R.id.view_barra_intensidade)
+
+        MonitorService.criarCanais(this)
+        setupMonitoramento()
+        setupRadioButtons()
+        setupSeekBar()
+        btnSalvar.setOnClickListener { salvarAlcance(alcanceMaximo) }
+        aplicarAlcanceNaTela(alcanceMaximo)
+
+        if (AppConfig.firebaseHabilitado) autenticarEConectar()
+        else txtStatusConexao.text = "Modo de teste (sem Firebase)"
+    }
+
+    override fun onStart() {
+        super.onStart()
+        atualizarBotaoMonitoramento()
+        handler.post(reavaliarConexao)
+    }
+
+    override fun onStop() {
+        handler.removeCallbacks(reavaliarConexao)
+        super.onStop()
+    }
+
+    override fun onDestroy() {
+        refEstado?.removeEventListener(listenerEstado)
+        refConfig?.removeEventListener(listenerConfig)
+        refOffset?.removeEventListener(listenerOffset)
+        handler.removeCallbacksAndMessages(null)
+        super.onDestroy()
+    }
+
+    // ------------------------------------------------------------ Firebase
+
+    private fun autenticarEConectar() {
+        txtStatusConexao.text = "Conectando ao Firebase…"
+        val auth = FirebaseAuth.getInstance()
+        if (auth.currentUser != null) { escutarFirebase(); return }
+        auth.signInAnonymously()
+            .addOnSuccessListener { escutarFirebase() }
+            .addOnFailureListener { e ->
+                Log.e(TAG, "Falha no login anônimo", e)
+                txtStatusConexao.text = "Erro de autenticação: ${e.localizedMessage}"
+            }
+    }
+
+    private fun escutarFirebase() {
+        refOffset = db.getReference(".info/serverTimeOffset").also { it.addValueEventListener(listenerOffset) }
+        refEstado = db.getReference(AlertaVibracao.PATH_ESTADO).also { it.addValueEventListener(listenerEstado) }
+        // Carrega o alcance salvo (antes o app sempre abria em 1,00 m) e
+        // acompanha mudanças feitas pela página web.
+        refConfig = db.getReference(AlertaVibracao.PATH_CONFIG).child("alcance_maximo")
+            .also { it.addValueEventListener(listenerConfig) }
+    }
+
+    private val listenerOffset = object : ValueEventListener {
+        override fun onDataChange(s: DataSnapshot) { offsetServidorMs = s.getValue(Long::class.java) ?: 0L }
+        override fun onCancelled(e: DatabaseError) {}
+    }
+
+    private val listenerEstado = object : ValueEventListener {
+        override fun onDataChange(s: DataSnapshot) = aplicarEstado(EstadoOculos.de(s))
+        override fun onCancelled(e: DatabaseError) {
+            txtStatusConexao.text = "Sem permissão para ler o banco (${e.message})"
+        }
+    }
+
+    private val listenerConfig = object : ValueEventListener {
+        override fun onDataChange(s: DataSnapshot) {
+            val v = s.getValue(Double::class.java) ?: return
+            aplicarAlcanceNaTela(AlertaVibracao.limitarAlcance(v))
+        }
+        override fun onCancelled(e: DatabaseError) {}
+    }
+
+    /** Recebe um novo estado do óculos (do Firebase ou, nos testes, simulado). */
+    @VisibleForTesting
+    internal fun aplicarEstado(estado: EstadoOculos?) {
+        ultimoEstado = estado
+        mostrarEstado()
+    }
+
+    private fun mostrarEstado() {
+        val e = ultimoEstado
+        if (e == null) {
+            txtStatusConexao.text = if (AppConfig.firebaseHabilitado) "Aguardando o óculos enviar dados…"
+            else "Modo de teste (sem Firebase)"
+            return
+        }
+        val online = AlertaVibracao.estaOnline(e.atualizadoEmMs, System.currentTimeMillis() + offsetServidorMs)
+        txtStatusConexao.text = if (online) "🟢 Óculos conectado (ao vivo)" else "⚫ Óculos offline"
+        txtStatusConexao.setTextColor(ContextCompat.getColor(this,
+            if (online) android.R.color.holo_green_dark else android.R.color.darker_gray))
+
+        if (!online) return
+        txtDistancia.text = AlertaVibracao.textoDistancia(e.distanciaM)
+        txtIntensidade.text = e.nivel.rotulo
+        atualizarBarra(AlertaVibracao.intensidade(e.distanciaM, alcanceMaximo))
+    }
+
+    private fun salvarAlcance(alcance: Double) {
+        if (!AppConfig.firebaseHabilitado) {
+            showFeedback("Alcance de ${AlertaVibracao.metros(alcance)} salvo (modo de teste)")
+            return
+        }
+        val dados = mapOf<String, Any>(
+            "alcance_maximo" to alcance,
+            "timestamp" to ServerValue.TIMESTAMP,
+        )
+        // updateChildren: não apaga outros campos do nó.
+        db.getReference(AlertaVibracao.PATH_CONFIG).updateChildren(dados)
+            .addOnSuccessListener {
+                showFeedback("✅ Alcance de ${AlertaVibracao.metros(alcance)} enviado ao óculos")
+            }
+            .addOnFailureListener { e ->
+                Log.e(TAG, "Erro ao salvar configuração", e)
+                showFeedback("Erro ao salvar: ${e.localizedMessage}", erro = true)
+            }
+    }
+
+    // -------------------------------------------------------- Monitoramento
+
+    private fun setupMonitoramento() {
+        btnConectar.setOnClickListener {
+            if (MonitorService.rodando) {
+                MonitorService.parar(this)
+                handler.postDelayed({ atualizarBotaoMonitoramento() }, 300)
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                != PackageManager.PERMISSION_GRANTED
+            ) {
+                pedirPermissaoNotificacao.launch(Manifest.permission.POST_NOTIFICATIONS)
+            } else {
+                iniciarMonitoramento()
+            }
+        }
+    }
+
+    private fun iniciarMonitoramento() {
+        MonitorService.iniciar(this)
+        showFeedback("Alertas ativados: o relógio vai vibrar com os obstáculos")
+        handler.postDelayed({ atualizarBotaoMonitoramento() }, 300)
+    }
+
+    private fun atualizarBotaoMonitoramento() {
+        btnConectar.text = if (MonitorService.rodando) "Parar alertas no relógio"
+        else "Iniciar alertas no relógio"
+    }
+
+    // ------------------------------------------------------------------- UI
+
+    private fun setupRadioButtons() {
+        // Os RadioButtons ficam dentro de cartões (MaterialCardView), não como filhos
+        // diretos do RadioGroup — e o RadioGroup só controla filhos diretos. Por isso o
+        // listener dele nunca disparava ao tocar e os dois podiam ficar marcados.
+        // Tratamos o toque em cada botão e a exclusão mútua em aplicarAlcanceNaTela().
+        val selecionar = { valor: Double ->
+            aplicarAlcanceNaTela(valor)
+            salvarAlcance(valor)
+        }
+        rbPerto.setOnClickListener { selecionar(1.00) }
+        rbMedio.setOnClickListener { selecionar(1.50) }
     }
 
     private fun setupSeekBar() {
         seekbarAlcance.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                alcanceMaximo = progress / 100.0
-                txtAlcanceAtual.text = String.format("%.2fm", alcanceMaximo)
-
-                // Desmarca os RadioButtons se o usuário ajustar manualmente
-                rgModos.clearCheck()
-                updateVibrationInfo()
+                if (!fromUser) return  // antes, mudar por código desmarcava o modo escolhido
+                alcanceMaximo = AlertaVibracao.limitarAlcance(progress / 100.0)
+                atualizarTextosAlcance()
             }
-
             override fun onStartTrackingTouch(seekBar: SeekBar?) {}
-            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {
+                aplicarAlcanceNaTela(alcanceMaximo)
+                salvarAlcance(alcanceMaximo)
+            }
         })
     }
 
-    private fun updateVibrationInfo() {
-        val info = when {
-            alcanceMaximo == 1.00 -> {
-                "📏 Modo Perto (1,00m):\n" +
-                        "• &lt; 0,60m → Vibração Forte\n" +
-                        "• 0,60m - 0,80m → Vibração Média\n" +
-                        "• 0,80m - 1,00m → Vibração Leve"
-            }
-            alcanceMaximo == 1.50 -> {
-                "📏 Modo Médio (1,50m):\n" +
-                        "• &lt; 0,40m → Vibração Forte\n" +
-                        "• 0,40m - 0,80m → Vibração Média\n" +
-                        "• 0,80m - 1,50m → Vibração Leve"
-            }
-            else -> {
-                "📏 Modo Personalizado (${String.format("%.2f", alcanceMaximo)}m):\n" +
-                        "• &lt; ${String.format("%.2f", alcanceMaximo * 0.4)}m → Vibração Forte\n" +
-                        "• ${String.format("%.2f", alcanceMaximo * 0.4)}m - ${String.format("%.2f", alcanceMaximo * 0.7)}m → Vibração Média\n" +
-                        "• ${String.format("%.2f", alcanceMaximo * 0.7)}m - ${String.format("%.2f", alcanceMaximo)}m → Vibração Leve"
-            }
-        }
-        txtInfoVibracao.text = info
+    private fun aplicarAlcanceNaTela(valor: Double) {
+        alcanceMaximo = valor
+        seekbarAlcance.progress = (valor * 100).roundToInt()
+        rbPerto.isChecked = abs(valor - 1.00) < 0.001
+        rbMedio.isChecked = abs(valor - 1.50) < 0.001
+        atualizarTextosAlcance()
     }
 
-    private fun setupSaveButton() {
-        btnSalvar.setOnClickListener {
-            // Salvar localmente e enviar para o óculos via Bluetooth/WiFi
-            // Firebase não está configurado aqui; usando stub
-            saveToFirebase(alcanceMaximo)
-            sendToGlasses(alcanceMaximo)
-            showFeedback("✅ Configuração salva! Alcance: ${String.format("%.2f", alcanceMaximo)}m")
+    private fun atualizarTextosAlcance() {
+        txtAlcanceAtual.text = AlertaVibracao.metros(alcanceMaximo)
+        // TalkBack lê "1,50 metros" em vez de uma porcentagem sem sentido.
+        ViewCompat.setStateDescription(seekbarAlcance, AlertaVibracao.metros(alcanceMaximo).replace(" m", " metros"))
+        txtInfoVibracao.text = AlertaVibracao.textoFaixas(alcanceMaximo)
+    }
+
+    private fun atualizarBarra(fracao: Double) {
+        viewBarraIntensidade.post {
+            val lp = viewIntensidade.layoutParams
+            lp.width = (viewBarraIntensidade.width * fracao).toInt()
+            viewIntensidade.layoutParams = lp
         }
     }
 
-    private fun saveToFirebase(alcance: Double) {
-        try {
-            val database = FirebaseDatabase.getInstance().reference
-            val config = mapOf(
-                "alcance_maximo" to alcance,
-                "timestamp" to System.currentTimeMillis()
-            )
-            database.child("configuracoes").child("usuario_id").setValue(config)
-                .addOnSuccessListener {
-                    Log.d("Firebase", "Configuração salva com sucesso")
-                }
-                .addOnFailureListener { e ->
-                    Log.e("Firebase", "Erro ao salvar configuração", e)
-                }
-        } catch (e: Exception) {
-            Log.e("Firebase", "Falha ao acessar Firebase", e)
-        }
-    }
-
-    private fun sendToGlasses(alcance: Double) {
-        // Enviar via Bluetooth ou WiFi para o óculos
-    }
-
-    private fun showFeedback(message: String) {
+    private fun showFeedback(message: String, erro: Boolean = false) {
         txtFeedback.text = message
+        txtFeedback.setTextColor(if (erro) 0xFFE53935.toInt() else 0xFF4CAF50.toInt())
         txtFeedback.visibility = View.VISIBLE
-
-        Handler(Looper.getMainLooper()).postDelayed({
-            txtFeedback.visibility = View.GONE
-        }, 3000)
-    }
-
-    // Simulação de leitura do sensor (para testes)
-    private fun simulateSensorReading(distance: Double) {
-        txtDistancia.text = String.format("%.2fm", distance)
-
-        val intensidade = when {
-            alcanceMaximo == 1.00 -> {
-                when {
-                    distance < 0.60 -> "Forte 🔴"
-                    distance < 0.80 -> "Média 🟠"
-                    distance < 1.00 -> "Leve 🟡"
-                    else -> "Nenhuma ⚪"
-                }
-            }
-            alcanceMaximo == 1.50 -> {
-                when {
-                    distance < 0.40 -> "Forte 🔴"
-                    distance < 0.80 -> "Média 🟠"
-                    distance < 1.50 -> "Leve 🟡"
-                    else -> "Nenhuma ⚪"
-                }
-            }
-            else -> {
-                val forte = alcanceMaximo * 0.4
-                val media = alcanceMaximo * 0.7
-                when {
-                    distance < forte -> "Forte 🔴"
-                    distance < media -> "Média 🟠"
-                    distance < alcanceMaximo -> "Leve 🟡"
-                    else -> "Nenhuma ⚪"
-                }
-            }
-        }
-
-        txtIntensidade.text = intensidade
-
-        // Atualizar barra visual
-        val percentual = (distance / alcanceMaximo).coerceIn(0.0, 1.0)
-        val layoutParams = viewIntensidade.layoutParams
-        layoutParams.width = (viewBarraIntensidade.width * percentual).toInt()
-        viewIntensidade.layoutParams = layoutParams
+        handler.removeCallbacks(esconderFeedback)  // antes, mensagens antigas apagavam as novas
+        handler.postDelayed(esconderFeedback, 3_000)
     }
 }

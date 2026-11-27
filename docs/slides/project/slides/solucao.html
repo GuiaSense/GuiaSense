@@ -1,0 +1,30 @@
+<section id="solucao" class="dark">
+<div class="head">
+<p class="eyebrow">A solução</p>
+<h2>Do laser ao pulso em menos de um segundo</h2>
+</div>
+<div class="cards">
+<div class="card in" style="--i:0;">
+<p class="num">1</p>
+<h3>Mede</h3>
+<p class="txt">O sensor laser no óculos mede a distância à frente cerca de 30 vezes por segundo.</p>
+</div>
+<div class="card in" style="--i:1;">
+<p class="num">2</p>
+<h3>Classifica</h3>
+<p class="txt">O ESP32-C3 decide o nível: Forte, Média, Leve ou nenhum, conforme o alcance configurado.</p>
+</div>
+<div class="card in" style="--i:2;">
+<p class="num">3</p>
+<h3>Transmite</h3>
+<p class="txt">Envia ao Firebase na hora em que o nível muda, e a cada 1 s como sinal de vida.</p>
+</div>
+<div class="card in" style="--i:3;">
+<p class="num">4</p>
+<h3>Vibra</h3>
+<p class="txt">O app gera a notificação; o smartwatch a espelha e vibra no pulso com o padrão do nível.</p>
+</div>
+</div>
+<div class="foot"><span>GuiaSense · Pré-banca TCC</span><span class="pg"></span></div>
+<aside>Quatro etapas. O detalhe importante: o óculos não espera o próximo segundo para avisar — quando o nível muda, ele envia na hora. A latência total observada fica entre 300 ms e 1 s, dependendo da rede.</aside>
+</section>

@@ -1,0 +1,5 @@
+# Simulação Wokwi do GuiaSense (compile antes: pio run -e wokwi)
+[wokwi]
+version = 1
+firmware = ".pio/build/wokwi/firmware.bin"
+elf = ".pio/build/wokwi/firmware.elf"

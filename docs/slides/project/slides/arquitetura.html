@@ -1,0 +1,24 @@
+<section id="arquitetura">
+<div class="head">
+<p class="eyebrow">Arquitetura</p>
+<h2>Quatro peças ligadas por um banco em tempo real</h2>
+</div>
+<div style="display:flex; flex-direction:column; align-items:flex-start;">
+<div class="flow">
+<div class="node in" style="--i:0;"><h3>Óculos</h3><p class="txt">ESP32-C3 + sensor laser VL53L0X</p></div>
+<x-connector head="end"></x-connector>
+<div class="node hub in" style="--i:1;"><h3>Firebase</h3><p class="txt">Realtime Database + login anônimo</p></div>
+<x-connector head="end"></x-connector>
+<div class="node in" style="--i:2;"><h3>App Android</h3><p class="txt">Serviço em 1º plano e notificações</p></div>
+<x-connector head="end"></x-connector>
+<div class="node in" style="--i:3;"><h3>Smartwatch</h3><p class="txt">Espelha a notificação e vibra</p></div>
+</div>
+<div style="display:flex; flex-direction:column; align-items:center; width:300px; margin-left:396px;">
+<x-connector head="both" style="width:0; height:72px; color:var(--orange); border-width:4px;"></x-connector>
+<div class="node in" style="--i:4; border-color:var(--soft);"><h3>Painel Web</h3><p class="txt">Acompanha ao vivo e configura</p></div>
+</div>
+</div>
+<p class="lead" style="font-size:28px;">Wi-Fi/HTTPS do óculos ao Firebase · tempo real até o app · Bluetooth do celular ao relógio. O alcance configurado volta pelo mesmo caminho até o óculos.</p>
+<div class="foot"><span>GuiaSense · Pré-banca TCC</span><span class="pg"></span></div>
+<aside>O Firebase é o ponto central: o óculos publica o estado e lê o alcance; o app escuta e notifica; o painel web serve para familiares e para a demonstração. O relógio não precisa de app próprio: ele espelha a notificação do celular.</aside>
+</section>

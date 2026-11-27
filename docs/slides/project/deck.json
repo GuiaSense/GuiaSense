@@ -1,0 +1,20 @@
+{
+  "v": 5,
+  "createdOnFiles": { "v": 1, "at": "2026-11-27T13:10:00Z" },
+  "lists": "css",
+  "format": { "v": 1, "shared": ["project/deck.css"] },
+  "title": "GuiaSense — Pré-banca TCC",
+  "cover": "cover",
+  "order": ["cover", "problema", "objetivos", "solucao", "arquitetura", "hardware", "regra", "app", "stack", "falhas", "testes", "demo", "futuro", "fim"],
+  "sections": {
+    "s1": { "description": "Contexto: o problema da mobilidade de pessoas com deficiência visual e os objetivos do projeto.", "start": "cover" },
+    "s2": { "description": "A solução: como o GuiaSense funciona, arquitetura, hardware, regra de alerta e app.", "start": "solucao" },
+    "s3": { "description": "Qualidade: falhas encontradas e corrigidas e a estratégia de testes.", "start": "falhas" },
+    "s4": { "description": "Demonstração, limitações, trabalhos futuros e encerramento.", "start": "demo" }
+  },
+  "faces": {
+    "space-grotesk": { "family": "Space Grotesk", "href": "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400..700&display=swap" },
+    "inter": { "family": "Inter", "href": "https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" }
+  },
+  "designSystems": []
+}
