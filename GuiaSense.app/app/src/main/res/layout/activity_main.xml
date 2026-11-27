@@ -57,7 +57,7 @@
                     android:id="@+id/btn_conectar"
                     android:layout_width="match_parent"
                     android:layout_height="48dp"
-                    android:text="Conectar ao Oculos"
+                    android:text="Iniciar alertas no relógio"
                     android:backgroundTint="#1E88E5"
                     android:textColor="#FFFFFF"
                     android:layout_marginBottom="8dp" />
@@ -253,8 +253,10 @@
 
                 <SeekBar
                     android:id="@+id/seekbar_alcance"
+                    android:contentDescription="Alcance máximo de detecção"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:min="50"
                     android:max="200"
                     android:progress="100" />
 
@@ -340,7 +342,7 @@
                     android:id="@+id/txt_info_vibracao"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Distancia &lt; 0,60m -&gt; Vibracao Forte\n0,60m - 0,80m -&gt; Vibracao Media\n0,80m - 1,00m -&gt; Vibracao Leve"
+                    android:text=""
                     android:textSize="13sp"
                     android:textColor="#666666"
                     android:lineSpacingExtra="4dp" />
