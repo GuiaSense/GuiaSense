@@ -1,0 +1,19 @@
+<section id="testes">
+<div class="head">
+<p class="eyebrow">Testes</p>
+<h2>A mesma regra, testada nas três linguagens</h2>
+</div>
+<div class="cards">
+<div class="card in" style="--i:0;"><p class="num">6/6</p><h3>Firmware</h3><p class="txt">Unity no PC (PlatformIO native): faixas, leitura do sensor, limites do alcance</p></div>
+<div class="card in" style="--i:1;"><p class="num">7/7</p><h3>App Android</h3><p class="txt">JUnit: faixas, textos do firmware, detecção de offline, textos em português</p></div>
+<div class="card in" style="--i:2;"><p class="num">6/6</p><h3>Painel Web</h3><p class="txt">node:test: faixas, valores inválidos, barra de intensidade, online/offline</p></div>
+<div class="card in" style="--i:3;"><p class="num">12/12</p><h3>Interface</h3><p class="txt">Espresso + verificador de acessibilidade do Google, no emulador. Acharam 2 falhas reais</p></div>
+</div>
+<div style="display:flex; gap:48px; align-items:center;">
+<div style="display:flex; gap:16px; align-items:center;"><x-icon name="Check" style="width:40px; height:40px; color:var(--blue);"></x-icon><p>Build ESP32-C3 aprovado</p></div>
+<div style="display:flex; gap:16px; align-items:center;"><x-icon name="Check" style="width:40px; height:40px; color:var(--blue);"></x-icon><p>Build Wokwi aprovado</p></div>
+<div style="display:flex; gap:16px; align-items:center;"><x-icon name="Check" style="width:40px; height:40px; color:var(--blue);"></x-icon><p>APK de debug gerado</p></div>
+</div>
+<div class="foot"><span>GuiaSense · Pré-banca TCC</span><span class="pg"></span></div>
+<aside>31 testes automatizados, todos passando — 19 de lógica e 12 de interface no emulador. Os testes de interface acharam duas falhas reais: o botão Médio nunca funcionava e o controle de alcance não era lido pelo TalkBack. Os casos são os mesmos nas três camadas, então se alguém mudar a regra em um lugar só, os testes mostram a divergência. Também há um roteiro de teste manual de integração em docs/TESTES.md.</aside>
+</section>

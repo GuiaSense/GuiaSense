@@ -1,0 +1,31 @@
+<section id="hardware">
+<div class="head">
+<p class="eyebrow">Hardware</p>
+<h2>Pequeno, barato e alimentado por bateria</h2>
+</div>
+<div style="display:flex; gap:64px; align-items:flex-start;">
+<div style="flex:1; display:flex; flex-direction:column; gap:24px;">
+<ul>
+<li><b>ESP32-C3 Super Mini</b> — Wi-Fi 2,4 GHz, USB-C</li>
+<li><b>VL53L0X</b> — laser ToF 940 nm, até ~2 m no modo longo alcance</li>
+<li><b>Bateria Li-Po 3,7 V</b> + módulo de carga TP4056</li>
+<li>Configuração de Wi-Fi pelo portal <b>GuiaSense-Setup</b>, sem senha no código</li>
+</ul>
+</div>
+<div style="width:720px; display:flex; flex-direction:column; gap:32px;">
+<table>
+<tr class="h"><th style="width:50%;">VL53L0X</th><th>ESP32-C3</th></tr>
+<tr><td>VIN</td><td>3V3</td></tr>
+<tr><td>GND</td><td>GND</td></tr>
+<tr><td>SDA</td><td>GPIO 8</td></tr>
+<tr><td>SCL</td><td>GPIO 9</td></tr>
+</table>
+<div class="cards">
+<div class="card"><p class="num">13%</p><p class="txt">da RAM usada</p></div>
+<div class="card"><p class="num">56%</p><p class="txt">da memória flash</p></div>
+</div>
+</div>
+</div>
+<div class="foot"><span>GuiaSense · Pré-banca TCC</span><span class="pg"></span></div>
+<aside>O sensor fica na ponte do nariz, apontado para frente. Ativamos o modo longo alcance do VL53L0X porque no modo padrão ele só chega a cerca de 1,2 m, e o app permite configurar até 2 m. O firmware usa só 13% da RAM, o que deixa espaço para recursos futuros.</aside>
+</section>

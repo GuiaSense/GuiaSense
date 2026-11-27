@@ -1,8 +1,14 @@
+# Credenciais
 google-services.json
 *.keystore
 *.jks
 app/google-services.json
+firmware/GuiaSense/secrets.h
+
+# Build
 build/
 .gradle/
 local.properties
 .idea/
+firmware/.pio/
+node_modules/
