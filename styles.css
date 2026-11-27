@@ -28,3 +28,21 @@ input[type=range]{width:100%;margin-top:8px}
 .info{white-space:pre-wrap;color:#666;background:transparent;border:0;padding:0;margin:0}
 
 @media (max-width:480px){.container{padding:12px;margin:8px}}
+
+/* --- status de conexão e níveis de alerta --- */
+.status{display:flex;align-items:center;gap:10px;margin:0;font-weight:600}
+.dot{width:12px;height:12px;border-radius:50%;background:var(--muted);flex:none}
+.dot[data-estado=online]{background:var(--success);box-shadow:0 0 0 4px rgba(76,175,80,.2)}
+.dot[data-estado=offline]{background:#9E9E9E}
+.dot[data-estado=aguardando]{background:var(--accent)}
+.dot[data-estado=erro]{background:#E53935}
+.bar-fill[data-nivel=Leve]{background:#FBC02D}
+.bar-fill[data-nivel=Media]{background:#FB8C00}
+.bar-fill[data-nivel=Forte]{background:#E53935}
+.feedback{transition:opacity .3s}
+.feedback.erro{color:#E53935}
+.mode{cursor:pointer;font-size:15px}
+.mode:focus-visible,.success:focus-visible,input:focus-visible{outline:3px solid var(--primary);outline-offset:2px}
+.success{margin-top:12px;cursor:pointer}
+.passos{margin:0 0 8px 0;padding-left:20px;line-height:1.5}
+input[type=range]:disabled{opacity:.5}

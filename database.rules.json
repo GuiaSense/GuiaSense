@@ -1,0 +1,27 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+
+    "configuracoes": {
+      "usuario_id": {
+        ".read": "auth != null",
+        ".write": "auth != null",
+        "alcance_maximo": { ".validate": "newData.isNumber() && newData.val() >= 0.5 && newData.val() <= 2.0" },
+        "timestamp": { ".validate": "newData.isNumber()" },
+        "$outro": { ".validate": false }
+      }
+    },
+
+    "estado_dispositivo": {
+      ".read": "auth != null",
+      ".write": "auth != null",
+      "ultima_distancia": { ".validate": "newData.isNumber() && newData.val() >= -1 && newData.val() <= 10" },
+      "vibracao_atual": { ".validate": "newData.isString() && newData.val().matches(/^(Nenhuma|Leve|Media|Forte)$/)" },
+      "alcance_maximo": { ".validate": "newData.isNumber()" },
+      "conectado": { ".validate": "newData.isBoolean()" },
+      "ultima_atualizacao": { ".validate": "newData.isNumber()" },
+      "$outro": { ".validate": false }
+    }
+  }
+}

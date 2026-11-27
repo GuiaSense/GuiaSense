@@ -3,82 +3,82 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Óculos Sensorial — Web</title>
+  <title>GuiaSense — Óculos Sensorial</title>
+  <meta name="description" content="Painel do GuiaSense: acompanhe o óculos sensorial em tempo real e ajuste o alcance de detecção." />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <main class="container">
     <h1>Óculos Sensorial</h1>
-    <p class="subtitle">Assistência para navegação</p>
+    <p class="subtitle">GuiaSense · Assistência para navegação</p>
 
-    <section class="card">
-      <h2>Conexão do Dispositivo</h2>
-      <button id="btn_conectar" class="primary">Conectar ao Óculos</button>
-      <p id="txt_status_conexao" class="muted">Desconectado</p>
+    <section class="card" aria-labelledby="h_conexao">
+      <h2 id="h_conexao">Conexão do Dispositivo</h2>
+      <p class="status" role="status" aria-live="polite">
+        <span id="status_dot" class="dot" data-estado="aguardando" aria-hidden="true"></span>
+        <span id="txt_status_conexao">Carregando…</span>
+      </p>
     </section>
 
-    <section class="card">
-      <h2>Status do Sensor</h2>
+    <section class="card" aria-labelledby="h_sensor">
+      <h2 id="h_sensor">Status do Sensor</h2>
       <div class="row">
         <span>Distância:</span>
-        <strong id="txt_distancia">--- m</strong>
+        <strong id="txt_distancia">---</strong>
       </div>
       <div class="row">
         <span>Intensidade:</span>
-        <strong id="txt_intensidade">---</strong>
+        <strong id="txt_intensidade" aria-live="assertive">---</strong>
       </div>
-      <div class="bar" id="view_barra_intensidade">
+      <div class="bar" id="view_barra_intensidade" aria-hidden="true">
         <div class="bar-fill" id="view_intensidade"></div>
       </div>
-      <label class="sim-label">Simular distância</label>
-      <input id="sim_distance" type="range" min="0" max="300" value="100">
+      <label class="sim-label" id="sim_label" for="sim_distance">Simular distância</label>
+      <input id="sim_distance" type="range" min="0" max="250" value="100" aria-describedby="sim_label">
     </section>
 
-    <section class="card">
-      <h2>Configuração do Alcance</h2>
+    <section class="card" aria-labelledby="h_alcance">
+      <h2 id="h_alcance">Configuração do Alcance</h2>
       <p class="muted">Modos Rápidos</p>
       <div class="modes">
-        <button class="mode" data-value="1.00">Perto (1,00m)</button>
-        <button class="mode" data-value="1.50">Médio (1,50m)</button>
+        <button type="button" class="mode" data-value="1.00" aria-pressed="false">Perto (1,00 m)</button>
+        <button type="button" class="mode" data-value="1.50" aria-pressed="false">Médio (1,50 m)</button>
       </div>
 
-      <label class="sim-label">Ajuste Personalizado</label>
-      <input id="seekbar_alcance" type="range" min="50" max="200" value="100">
+      <label class="sim-label" for="seekbar_alcance">Ajuste Personalizado</label>
+      <input id="seekbar_alcance" type="range" min="50" max="200" step="5" value="100">
       <div class="range-info">
-        <span>Min: 0,50m</span>
-        <strong id="txt_alcance_atual">1,00m</strong>
-        <span>Max: 2,00m</span>
+        <span>Mín: 0,50 m</span>
+        <strong id="txt_alcance_atual">1,00 m</strong>
+        <span>Máx: 2,00 m</span>
       </div>
 
-      <button id="btn_salvar" class="success">Salvar Configuração</button>
-      <p id="txt_feedback" class="feedback"></p>
+      <button type="button" id="btn_salvar" class="success">Salvar Configuração</button>
+      <p id="txt_feedback" class="feedback" role="status" aria-live="polite"></p>
     </section>
 
-    <section class="card">
-      <h2>Conectar via Wi‑Fi</h2>
-      <p class="muted">Digite o SSID e a senha da rede para o dispositivo se conectar.</p>
-      <div class="row">
-        <label for="wifi_ssid">SSID</label>
-        <input id="wifi_ssid" type="text" placeholder="Nome da rede">
-      </div>
-      <div class="row">
-        <label for="wifi_pass">Senha</label>
-        <input id="wifi_pass" type="password" placeholder="Senha da rede">
-      </div>
-      <button id="btn_send_wifi" class="primary">Enviar credenciais</button>
-      <p id="txt_wifi_feedback" class="muted"></p>
+    <section class="card" aria-labelledby="h_wifi">
+      <h2 id="h_wifi">Configurar o Wi‑Fi do óculos</h2>
+      <ol class="passos">
+        <li>Ligue o óculos. Se ele não encontrar uma rede conhecida, cria a rede <strong>GuiaSense-Setup</strong>.</li>
+        <li>Conecte o celular nessa rede e abra <strong>http://192.168.4.1</strong>.</li>
+        <li>Informe o nome e a senha da rede (2,4 GHz) e toque em <em>Salvar</em>. O óculos reinicia e conecta.</li>
+      </ol>
+      <p class="muted">A senha fica só na memória do óculos — ela não passa pela internet nem pelo banco de dados.</p>
     </section>
 
-    <section class="card">
-      <h2>Como Funciona a Vibração</h2>
+    <section class="card" aria-labelledby="h_info">
+      <h2 id="h_info">Como Funciona a Vibração</h2>
       <pre id="txt_info_vibracao" class="info"></pre>
     </section>
   </main>
 
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script> <script>
-    // Inicialização do Firebase
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  <script>
+    // Configuração pública do app Web do Firebase. Ela não é segredo: o que
+    // protege os dados são as regras em database.rules.json.
     var firebaseConfig = {
       apiKey: "AIzaSyBDA9Sao0jGoXUKqLYDLxNOUwrviUi5Z14",
       authDomain: "guiasense.firebaseapp.com",
@@ -88,8 +88,9 @@
       messagingSenderId: "658225888828",
       appId: "1:658225888828:android:d6908a013a9d94deb24d39"
     };
-    firebase.initializeApp(firebaseConfig);
+    if (typeof firebase !== 'undefined') firebase.initializeApp(firebaseConfig);
   </script>
+  <script src="alerta.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
